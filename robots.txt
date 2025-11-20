@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://brasonite.github.io/un_beta_blog/sitemap.xml
