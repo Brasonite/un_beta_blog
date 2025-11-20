@@ -211,7 +211,7 @@
     
     
     "mainEntityOfPage": "true",
-    "wordCount": "0"
+    "wordCount": "1292"
   }]
   </script>
 
@@ -244,6 +244,10 @@
 
 
 
+
+  
+    
+  
 
 
 
@@ -499,7 +503,11 @@
   
 
   
+    
+  
 
+  
+    
   
 
   
@@ -515,6 +523,8 @@
 
   <div class="flex flex-row flex-wrap items-center">
     
+    
+      <span></span><span class="px-2 text-primary-500">&middot;</span><span title=""></span>
     
 
     
@@ -605,7 +615,333 @@
         
 
         <div class="article-content max-w-prose mb-20">
-          
+          <p>A segunda atividade realizada para este projeto foi um estudo sobre o uso de APIs. Mais especificamente, como é possível utilizar a API do <a
+  href="https://www.sptrans.com.br/desenvolvedores/api-do-olho-vivo-guia-de-referencia/"
+    target="_blank"
+  >Olho Vivo</a>, disponibilizada pela SPTrans, para consultar as paradas e os carros de uma linha de ônibus (ou metrô).</p>
+
+<h1 class="relative group">O desafio
+    <div id="o-desafio" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#o-desafio" aria-label="">#</a>
+    </span>
+    
+</h1>
+<p>O desafio foi o seguinte: Usando a API do Olho Vivo, construir um mapa com as posições das paradas de uma linha de ônibus, além das posições dos ônibus no momento de execução do código. As paradas e as posições devem ser indicadas com marcadores de cores diferentes.</p>
+
+<h1 class="relative group">O código
+    <div id="o-código" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#o-c%c3%b3digo" aria-label="">#</a>
+    </span>
+    
+</h1>
+<p>Primeiramente, eu decidi criar um módulo separado para o uso da API, já que seria necessário usar vários <em>endpoints</em> diferentes. Então, no arquivo <code>api.py</code>, eu comecei com o seguinte código:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">&#34;./.env&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+</span></span></code></pre></div><p>Eu guardei o meu token em um arquivo chamado <code>.env</code> e usarei o método <code>os.getenv()</code> quando precisar dele. Por isso, é necessário usar a função <code>load_dotenv()</code> para carregá-lo ao iniciar o programa.</p>
+<p>Além disso, eu iniciei uma sessão do <code>requests</code>, já que é necessário se autenticar para usar a API. Sem uma sessão, é possível que o cookie de autenticação não seja guardado para operações futuras.</p>
+<p>Em seguida, eu criei a função que autenticará a sessão usando o token e um request de tipo <code>POST</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">autenticar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Autenticando...&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Login/Autenticar?token=</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SPTRANS_TOKEN&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&#34;true&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Autenticado com sucesso.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">True</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Falha na autenticação.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">False</span>
+</span></span></code></pre></div><p>Note que a API retornará <code>&quot;true&quot;</code> ou <code>&quot;false&quot;</code> dependendo do resultado da autenticação. Podemos utilizar isso para parar a execução do programa caso a autenticação falhe.</p>
+<p>Após isso, eu escrevi as funções de busca de linhas, paradas e posições, cada uma usando um request de tipo <code>GET</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">buscar_linhas</span><span class="p">(</span><span class="n">termo</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando por linhas de&#34;</span><span class="p">,</span> <span class="n">termo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Linha/Buscar?termosBusca=</span><span class="si">{</span><span class="n">termo</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">buscar_paradas</span><span class="p">(</span><span class="n">codigo</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando por paradas na linha&#34;</span><span class="p">,</span> <span class="n">codigo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Parada/BuscarParadasPorLinha?codigoLinha=</span><span class="si">{</span><span class="n">codigo</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">buscar_posicoes</span><span class="p">(</span><span class="n">codigo</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando por posições na linha&#34;</span><span class="p">,</span> <span class="n">codigo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Posicao/Linha?codigoLinha=</span><span class="si">{</span><span class="n">codigo</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&#34;vs&#34;</span><span class="p">]</span>
+</span></span></code></pre></div><p>Todas elas possuem um formato similar, então não vejo sentido em comentar sobre cada uma individualmente.</p>
+<p>Mesmo assim, é importante notar que, em <code>buscar_posicoes()</code>, eu retorno <code>res.json()[&quot;vs&quot;]</code>, e não apenas <code>res.json()</code>, como nas outras. Isso é porque nos interessam apenas os veículos, guardados na lista <code>&quot;vs&quot;</code>.</p>
+<p>Já com as funções que precisamos em mão, agora podemos começar a obter as informações que precisamos. Farei isso no arquivo <code>main.py</code>.</p>
+<p>O primeiro passo é autenticar a sessão, parando a execução caso isso falhe:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">api</span><span class="o">.</span><span class="n">autenticar</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span></code></pre></div><p>Em seguida, podemos pesquisar pelas linhas que satisfazem um termo. No meu caso, escolhi o Metrô Santana, que pode ser identificado pelo termo &ldquo;Santana&rdquo;.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">api</span><span class="o">.</span><span class="n">autenticar</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">TERMO</span> <span class="o">=</span> <span class="s2">&#34;Santana&#34;</span> <span class="c1"># Metrô Santana</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">linhas</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_linhas</span><span class="p">(</span><span class="n">TERMO</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Foram encontradas&#34;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">linhas</span><span class="p">),</span> <span class="s2">&#34;linhas para o termo&#34;</span><span class="p">,</span> <span class="n">TERMO</span><span class="p">)</span>
+</span></span></code></pre></div><p>Agora, podemos começar a obter as informações que precisamos sobre uma linha. Entretanto, enquanto escrevia o programa, me deparei com um problema: Nem todas as linhas retornadas por <code>api.buscar_linhas()</code> possuem tanto paradas quanto veículos. Na verdade, várias delas não possuem nenhum dos dois.</p>
+<p>Por isso, decidi que seria melhor se eu procurasse até achar uma linha que possuía ambos. Isso não é tão difícil se usarmos um loop <code>for</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">api</span><span class="o">.</span><span class="n">autenticar</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">TERMO</span> <span class="o">=</span> <span class="s2">&#34;Santana&#34;</span> <span class="c1"># Metrô Santana</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">linhas</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_linhas</span><span class="p">(</span><span class="n">TERMO</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Foram encontradas&#34;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">linhas</span><span class="p">),</span> <span class="s2">&#34;linhas para o termo&#34;</span><span class="p">,</span> <span class="n">TERMO</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando uma linha válida...&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">paradas</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">posicoes</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">linha</span> <span class="ow">in</span> <span class="n">linhas</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">paradas</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_paradas</span><span class="p">(</span><span class="n">linha</span><span class="p">[</span><span class="s2">&#34;cl&#34;</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">posicoes</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_posicoes</span><span class="p">(</span><span class="n">linha</span><span class="p">[</span><span class="s2">&#34;cl&#34;</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paradas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">posicoes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Linha válida encontrada:&#34;</span><span class="p">,</span> <span class="n">linha</span><span class="p">[</span><span class="s2">&#34;tp&#34;</span><span class="p">],</span> <span class="s2">&#34;-&#34;</span><span class="p">,</span> <span class="n">linha</span><span class="p">[</span><span class="s2">&#34;ts&#34;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">            <span class="k">break</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paradas</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">posicoes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Não foi encontrada uma linha válida.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span></code></pre></div><p>Como você pode ver, paramos o loop se acharmos uma linha que possui tanto alguma parada quanto alguma posição de veículo. Se, ao terminar o loop, não tivermos o que precisamos, podemos interromper a execução do programa.</p>
+<p>Note que pesquisamos por paradas e posições usando o valor <code>linha[&quot;cl&quot;]</code>, que corresponde ao código da linha. Além disso, <code>linha[&quot;tp&quot;]</code> é o terminal principal, enquanto <code>linha[&quot;ts&quot;]</code> é o terminal secundário.</p>
+<p>Enfim, podemos começar a construir o mapa. Para isso, usamos a biblioteca Folium.</p>
+<p>Começamos com uma função que criará o objeto do mapa, inicialmente posicionado na primeira parada:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">criar_mapa</span><span class="p">(</span><span class="n">paradas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">posicoes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Map</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span> <span class="o">=</span> <span class="n">Map</span><span class="p">([</span><span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">zoom_start</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</span></span></code></pre></div><p>Note que escreverei essa função no módulo <code>mapas.py</code> do meu projeto.</p>
+<p>Em seguida, podemos adicionar um marcador para cada parada:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">criar_mapa</span><span class="p">(</span><span class="n">paradas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">posicoes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Map</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span> <span class="o">=</span> <span class="n">Map</span><span class="p">([</span><span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">zoom_start</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">parada</span> <span class="ow">in</span> <span class="n">paradas</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Marker</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="p">[</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">parada</span><span class="p">[</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">popup</span><span class="o">=</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;np&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">mapa</span><span class="p">)</span>
+</span></span></code></pre></div><p>E um marcador para cada posição de veículo:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">criar_mapa</span><span class="p">(</span><span class="n">paradas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">posicoes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Map</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span> <span class="o">=</span> <span class="n">Map</span><span class="p">([</span><span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">zoom_start</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">parada</span> <span class="ow">in</span> <span class="n">paradas</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Marker</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="p">[</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">parada</span><span class="p">[</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">popup</span><span class="o">=</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;np&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">mapa</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">posicoes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">popup</span><span class="o">=</span><span class="n">pos</span><span class="p">[</span><span class="s2">&#34;p&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">mapa</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Icon</span><span class="p">(</span><span class="s2">&#34;red&#34;</span><span class="p">,</span> <span class="s2">&#34;white&#34;</span><span class="p">,</span> <span class="s2">&#34;bus&#34;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&#34;fa&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">marker</span><span class="p">)</span>
+</span></span></code></pre></div><p>Para os veículos, decidi usar um marcador vermelho com ícone de ônibus.</p>
+<p>Por fim, retornamos o mapa construído no final da função:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">criar_mapa</span><span class="p">(</span><span class="n">paradas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">posicoes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Map</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span> <span class="o">=</span> <span class="n">Map</span><span class="p">([</span><span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">zoom_start</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">parada</span> <span class="ow">in</span> <span class="n">paradas</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Marker</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="p">[</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">parada</span><span class="p">[</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">popup</span><span class="o">=</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;np&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">mapa</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">posicoes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">popup</span><span class="o">=</span><span class="n">pos</span><span class="p">[</span><span class="s2">&#34;p&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">mapa</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Icon</span><span class="p">(</span><span class="s2">&#34;red&#34;</span><span class="p">,</span> <span class="s2">&#34;white&#34;</span><span class="p">,</span> <span class="s2">&#34;bus&#34;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&#34;fa&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">marker</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">mapa</span>
+</span></span></code></pre></div><p>Então, na função <code>main()</code>, construímos o mapa com as informações que possuímos e o abrimos no navegador:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">api</span><span class="o">.</span><span class="n">autenticar</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">TERMO</span> <span class="o">=</span> <span class="s2">&#34;Santana&#34;</span> <span class="c1"># Metrô Santana</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">linhas</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_linhas</span><span class="p">(</span><span class="n">TERMO</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Foram encontradas&#34;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">linhas</span><span class="p">),</span> <span class="s2">&#34;linhas para o termo&#34;</span><span class="p">,</span> <span class="n">TERMO</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando uma linha válida...&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">paradas</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">posicoes</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">linha</span> <span class="ow">in</span> <span class="n">linhas</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">paradas</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_paradas</span><span class="p">(</span><span class="n">linha</span><span class="p">[</span><span class="s2">&#34;cl&#34;</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">posicoes</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_posicoes</span><span class="p">(</span><span class="n">linha</span><span class="p">[</span><span class="s2">&#34;cl&#34;</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paradas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">posicoes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Linha válida encontrada:&#34;</span><span class="p">,</span> <span class="n">linha</span><span class="p">[</span><span class="s2">&#34;tp&#34;</span><span class="p">],</span> <span class="s2">&#34;-&#34;</span><span class="p">,</span> <span class="n">linha</span><span class="p">[</span><span class="s2">&#34;ts&#34;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">            <span class="k">break</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paradas</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">posicoes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Não foi encontrada uma linha válida.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span> <span class="o">=</span> <span class="n">mapas</span><span class="o">.</span><span class="n">criar_mapa</span><span class="p">(</span><span class="n">paradas</span><span class="p">,</span> <span class="n">posicoes</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span><span class="o">.</span><span class="n">show_in_browser</span><span class="p">()</span>
+</span></span></code></pre></div>
+<h1 class="relative group">Os resultados
+    <div id="os-resultados" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#os-resultados" aria-label="">#</a>
+    </span>
+    
+</h1>
+<p>Executar esse código deve nos levar a uma página com o seguinte mapa:</p>
+<figure><img
+    class="my-0 rounded-md"
+    loading="lazy"
+    decoding="async"
+    fetchpriority="low"
+    alt="O mapa da linha Itaim Bibi - Metrô Santana, com seis paradas (em azul) e três carros (em vermelho). A linha é relativamente reta, indo de Itaim Bibi até Santa Ifigênia."
+    src="./itaim_bibi-metro_santana.png"
+    ></figure>
+<p>No caso, essa foi a saída do terminal:</p>
+<pre tabindex="0"><code>Autenticando...
+Autenticado com sucesso.
+Procurando por linhas de Santana
+Foram encontradas 140 linhas para o termo Santana
+Procurando uma linha válida...
+Linha válida encontrada: ITAIM BIBI - METRÔ SANTANA
+Your map should have been opened in your browser automatically.
+Press ctrl+c to return.
+</code></pre><p>Aqui está o código completo, se te interessar:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="c1"># main.py</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">api</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">mapas</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">api</span><span class="o">.</span><span class="n">autenticar</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">TERMO</span> <span class="o">=</span> <span class="s2">&#34;Santana&#34;</span> <span class="c1"># Metrô Santana</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">linhas</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_linhas</span><span class="p">(</span><span class="n">TERMO</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Foram encontradas&#34;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">linhas</span><span class="p">),</span> <span class="s2">&#34;linhas para o termo&#34;</span><span class="p">,</span> <span class="n">TERMO</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando uma linha válida...&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">paradas</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">posicoes</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">linha</span> <span class="ow">in</span> <span class="n">linhas</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">paradas</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_paradas</span><span class="p">(</span><span class="n">linha</span><span class="p">[</span><span class="s2">&#34;cl&#34;</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">posicoes</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">buscar_posicoes</span><span class="p">(</span><span class="n">linha</span><span class="p">[</span><span class="s2">&#34;cl&#34;</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paradas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">posicoes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Linha válida encontrada:&#34;</span><span class="p">,</span> <span class="n">linha</span><span class="p">[</span><span class="s2">&#34;tp&#34;</span><span class="p">],</span> <span class="s2">&#34;-&#34;</span><span class="p">,</span> <span class="n">linha</span><span class="p">[</span><span class="s2">&#34;ts&#34;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">            <span class="k">break</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paradas</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">posicoes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Não foi encontrada uma linha válida.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span> <span class="o">=</span> <span class="n">mapas</span><span class="o">.</span><span class="n">criar_mapa</span><span class="p">(</span><span class="n">paradas</span><span class="p">,</span> <span class="n">posicoes</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span><span class="o">.</span><span class="n">show_in_browser</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">main</span><span class="p">()</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="c1"># api.py</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">os</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">requests</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">&#34;./.env&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">autenticar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Autenticando...&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Login/Autenticar?token=</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SPTRANS_TOKEN&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&#34;true&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Autenticado com sucesso.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">True</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Falha na autenticação.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">False</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">buscar_linhas</span><span class="p">(</span><span class="n">termo</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando por linhas de&#34;</span><span class="p">,</span> <span class="n">termo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Linha/Buscar?termosBusca=</span><span class="si">{</span><span class="n">termo</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">buscar_paradas</span><span class="p">(</span><span class="n">codigo</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando por paradas na linha&#34;</span><span class="p">,</span> <span class="n">codigo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Parada/BuscarParadasPorLinha?codigoLinha=</span><span class="si">{</span><span class="n">codigo</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">buscar_posicoes</span><span class="p">(</span><span class="n">codigo</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Procurando por posições na linha&#34;</span><span class="p">,</span> <span class="n">codigo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="sa">f</span><span class="s2">&#34;http://api.olhovivo.sptrans.com.br/v2.1/Posicao/Linha?codigoLinha=</span><span class="si">{</span><span class="n">codigo</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&#34;vs&#34;</span><span class="p">]</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="c1"># mapas.py</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">folium</span> <span class="kn">import</span> <span class="n">Icon</span><span class="p">,</span> <span class="n">Map</span><span class="p">,</span> <span class="n">Marker</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">criar_mapa</span><span class="p">(</span><span class="n">paradas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">posicoes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Map</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapa</span> <span class="o">=</span> <span class="n">Map</span><span class="p">([</span><span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">paradas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">zoom_start</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">parada</span> <span class="ow">in</span> <span class="n">paradas</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Marker</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="p">[</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">parada</span><span class="p">[</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">popup</span><span class="o">=</span><span class="n">parada</span><span class="p">[</span><span class="s2">&#34;np&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">mapa</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">posicoes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="s2">&#34;py&#34;</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="s2">&#34;px&#34;</span><span class="p">]],</span> <span class="n">popup</span><span class="o">=</span><span class="n">pos</span><span class="p">[</span><span class="s2">&#34;p&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">mapa</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Icon</span><span class="p">(</span><span class="s2">&#34;red&#34;</span><span class="p">,</span> <span class="s2">&#34;white&#34;</span><span class="p">,</span> <span class="s2">&#34;bus&#34;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&#34;fa&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">add_to</span><span class="p">(</span><span class="n">marker</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">mapa</span>
+</span></span></code></pre></div>
           
           
           

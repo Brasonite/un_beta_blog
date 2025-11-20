@@ -37,7 +37,7 @@ O desafio proposto foi o seguinte: Dados os [valores de `x`](./X.txt) e os [valo
 
 Para resolver esse desafio, foi recomendado o uso das bibliotecas NumPy, Pandas e Plotnine, então foi o que usei.
 
-Primeiramente, precisamos definir a função de calculará a regressão linear, o coração do nosso projeto. Eis aqui a função que escrevi para isso:
+Primeiramente, precisamos definir a função que calculará a regressão linear, o coração do nosso projeto. Eis aqui a função que escrevi para isso:
 
 ```Python
 def linear_regression(x, y):
@@ -46,9 +46,85 @@ def linear_regression(x, y):
 
 Isso é apenas uma transcrição da função matemática que coloquei na primeira seção. É um pouco difícil de enxergar, mas é.
 
+Agora, precisamos extrair as informações dos arquivos que o professor disponibilizou. Eu fiz isso na função principal.
+
+```Python
+def main():
+    df_x: list[float] = []
+    X: list[list[float]] = []
+    with open("./X.txt") as file:
+        for line in file.readlines():
+            num = float(line)
+            df_x.append(num)
+            X.append([1.0, num])
+
+    y: list[float] = []
+    with open("./y.txt") as file:
+        for line in file.readlines():
+            y.append(float(line))
+```
+
+Cada linha nesses arquivos representa um número, então ler esses dados é tão simples quanto ler cada linha e a converter para um número. Fácil!
+
+No entanto, você deve perceber que eu criei duas variáveis para os valores de `x`, mas apenas uma para os de `y`. O motivo disso é que eu preciso desses valores em dois formatos diferentes, um para o `DataFrame` do Pandas e outro para a regressão linear, enquanto esse não é o caso para `y`.
+
+Agora, a próxima etapa é obter os coeficientes `a` e `b` usando a nossa função de regressão linear.
+
+```Python
+def main():
+    df_x: list[float] = []
+    X: list[list[float]] = []
+    with open("./X.txt") as file:
+        for line in file.readlines():
+            num = float(line)
+            df_x.append(num)
+            X.append([1.0, num])
+
+    y: list[float] = []
+    with open("./y.txt") as file:
+        for line in file.readlines():
+            y.append(float(line))
+
+    a, b = linear_regression(X, y)
+```
+
+Então, criamos o `DataFrame` do Pandas com os pontos que temos e criamos o gráfico, o salvando em uma imagem.
+
+```Python
+def main():
+    df_x: list[float] = []
+    X: list[list[float]] = []
+    with open("./X.txt") as file:
+        for line in file.readlines():
+            num = float(line)
+            df_x.append(num)
+            X.append([1.0, num])
+
+    y: list[float] = []
+    with open("./y.txt") as file:
+        for line in file.readlines():
+            y.append(float(line))
+
+    a, b = linear_regression(X, y)
+
+    df = pd.DataFrame({"x": df_x, "y": y})
+
+    (
+        ggplot(df, aes("x", "y"))
+        + geom_point()
+        + geom_abline(intercept=a, slope=b)
+    ).save("grafico.png")
+```
+
+Nas últimas linhas, podemos ver o `ggplot` do `DataFrame` desenhando nossos pontos, adicionando, também, uma linha com os coeficientes `a` e `b`, que possuem os nomes `intercept` e `slope` em Inglês, respectivamente.
+
 # Os resultados
 
+Executar esse código produzirá esta imagem:
+
 ![O magnificentíssimo gráfico, com a reta e os pontos. Dia lindo, não?](./plot.png)
+
+Como podemos ver, temos todos os nossos 700 pontos e, passando mais ou menos por meio dessa nuvem, a nossa reta.
 
 Aqui está o código completo, se te interessar:
 
@@ -87,7 +163,7 @@ def main():
     df = pd.DataFrame({"x": df_x, "y": y})
 
     (
-        ggplot(pd.DataFrame(df), aes("x", "y"))
+        ggplot(df, aes("x", "y"))
         + geom_point()
         + geom_abline(intercept=a, slope=b)
     ).save("grafico.png")

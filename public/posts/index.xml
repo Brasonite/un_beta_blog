@@ -20,23 +20,23 @@
     </item>
     
     <item>
-      <title>Regressão Linear</title>
-      <link>http://localhost:1313/un_beta_blog/posts/linear_regression/</link>
-      <pubDate>Mon, 17 Nov 2025 16:16:52 -0300</pubDate>
-      
-      <guid>http://localhost:1313/un_beta_blog/posts/linear_regression/</guid>
-      <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/un_beta_blog/posts/linear_regression/featured.jpg" />
-    </item>
-    
-    <item>
       <title>Frotas de Ônibus</title>
       <link>http://localhost:1313/un_beta_blog/posts/sptrans/</link>
-      <pubDate>Mon, 17 Nov 2025 15:23:52 -0300</pubDate>
+      <pubDate>Mon, 17 Nov 2025 16:23:52 -0300</pubDate>
       
       <guid>http://localhost:1313/un_beta_blog/posts/sptrans/</guid>
       <description></description>
       <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/un_beta_blog/posts/sptrans/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Regressão Linear</title>
+      <link>http://localhost:1313/un_beta_blog/posts/linear_regression/</link>
+      <pubDate>Mon, 17 Nov 2025 15:16:52 -0300</pubDate>
+      
+      <guid>http://localhost:1313/un_beta_blog/posts/linear_regression/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/un_beta_blog/posts/linear_regression/featured.jpg" />
     </item>
     
   </channel>

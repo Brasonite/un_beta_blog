@@ -211,7 +211,7 @@
     
     
     "mainEntityOfPage": "true",
-    "wordCount": "1448"
+    "wordCount": "1449"
   }]
   </script>
 
@@ -244,6 +244,10 @@
 
 
 
+
+  
+    
+  
 
 
 
@@ -615,7 +619,6 @@
   href="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/swagger-ui3#/"
     target="_blank"
   >Olinda</a>, disponibilizada pelo Banco Central, para consultar a cotação do dólar em certos períodos.</p>
-<p>Ao longo desse post, vou explicar o processo e a lógica por traz do código que escrevi.</p>
 
 <h1 class="relative group">O desafio
     <div id="o-desafio" class="anchor"></div>
@@ -639,7 +642,7 @@
     </span>
     
 </h1>
-<p>A primeira etapa para construir esse programa foi determinar o período que seria consultado. Sim, o professor já havia disponibilizado o mês que usaria, Maio de 2014, mas a API requere uma data inicial e uma data final. Por isso, eu construí essa função conveniente para fazer justamente isso:</p>
+<p>A primeira etapa para construir esse programa foi determinar o período que seria consultado. Sim, o professor já havia disponibilizado o mês que eu usaria, Maio de 2014, mas a API requere uma data inicial e uma data final. Por isso, eu construí essa função conveniente para fazer justamente isso:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">datas</span><span class="p">(</span><span class="n">mes</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]:</span>
 </span></span><span class="line"><span class="cl">    <span class="n">data_inicial</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">mes</span><span class="p">,</span> <span class="s2">&#34;%m%Y&#34;</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl">    <span class="n">data_final</span> <span class="o">=</span> <span class="n">data_inicial</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
@@ -670,8 +673,11 @@
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">construir_query_periodo</span><span class="p">(</span><span class="n">data_inicial</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">data_final</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 </span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="sa">f</span><span class="s2">&#34;?%40dataInicial=&#39;</span><span class="si">{</span><span class="n">data_inicial</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m</span><span class="si">%d</span><span class="s1">%Y&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39;&amp;%40dataFinalCotacao=&#39;</span><span class="si">{</span><span class="n">data_final</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m</span><span class="si">%d</span><span class="s1">%Y&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39;&amp;%24format=json&#34;</span>
 </span></span></code></pre></div><p>Agora era a hora de &ldquo;plottar&rdquo; o gráfico. No entanto, é aí que entra o desafio adicional que mencionei no começo do artigo.</p>
-<p>Veja, o mês de Maio de 2014 possui vários fins de semana, como tende a ser o caso para a maioria dos meses. Assim, eu terei que preencher os dias não úteis com a cotação anterior mais recente.</p>
-<p>Basicamente, eu começo com uma lista com um valor para cada dia do mês. Então, para cada cotação que nós possuímos, eu extraio o dia de sua data e o valor do dólar e, então, defino o valor para aquele dia na lista com o valor que nós temos.</p>
+<p>Veja, o mês de Maio de 2014 possui vários fins de semana, como tende a ser o caso para a maioria dos meses. Assim, eu terei que preencher os dias não úteis com a cotação anterior mais recente em relação a cada um deles.</p>
+<p>Basicamente, eu começo com uma lista com um valor <em>placeholder</em> para cada dia do mês. Então, para cada cotação que nós possuímos, eu extraio o dia de sua data e o valor do dólar e, então, atualizo o valor para aquele dia na lista.</p>
+<blockquote>
+<p>Um &ldquo;<em>placeholder</em>&rdquo; é um valor temporário que pretendemos substituir.</p>
+</blockquote>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">processar_cotacoes</span><span class="p">(</span><span class="n">cotacoes_uteis</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">data_inicial</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">data_final</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
 </span></span><span class="line"><span class="cl">    <span class="n">cotacoes</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data_final</span><span class="o">.</span><span class="n">day</span><span class="p">)]</span>
 </span></span><span class="line"><span class="cl">
@@ -680,7 +686,7 @@
 </span></span><span class="line"><span class="cl">        <span class="n">valor</span> <span class="o">=</span> <span class="n">cotacao</span><span class="p">[</span><span class="s2">&#34;cotacaoCompra&#34;</span><span class="p">]</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl">        <span class="n">cotacoes</span><span class="p">[</span><span class="n">dia</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">valor</span>
-</span></span></code></pre></div><p>Após isso, nós passamos por cada item da lista e, se ele for <code>0</code> (ou seja, nenhuma cotação), nós substituímos o valor dele pelo valor do item anterior. Faça isso sequencialmente e todos os valores estarão definidos!</p>
+</span></span></code></pre></div><p>Após isso, nós passamos por cada item da lista e, se ele for <code>0</code> (o <em>placeholder</em>), nós substituímos o valor dele pelo valor do item anterior. Faça isso sequencialmente e todos os valores estarão definidos!</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">processar_cotacoes</span><span class="p">(</span><span class="n">cotacoes_uteis</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">data_inicial</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">data_final</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
 </span></span><span class="line"><span class="cl">    <span class="n">cotacoes</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data_final</span><span class="o">.</span><span class="n">day</span><span class="p">)]</span>
 </span></span><span class="line"><span class="cl">
@@ -700,7 +706,7 @@
 </span></span></code></pre></div><p>Eu também aproveitei para simplificar a estrutura dos dados, já que não precisamos de todas aquelas informações extras. Assim, podemos usar o índice na lista como o dia e o item como o valor.</p>
 <p>Contudo, essa implementação tem um grave problema. Você enxergou ele? Se não, aqui está a linha problemática:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="n">cotacoes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cotacoes</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-</span></span></code></pre></div><p>Fazendo isso, nós obtemos a cotação anterior. Mas e se <code>i</code>, o dia, for <code>0</code>? Bem, nesse caso, <code>i - 1</code> seria <code>0</code> e nós usariamos a última cotação do mês!</p>
+</span></span></code></pre></div><p>Fazendo isso, nós obtemos a cotação anterior. Mas e se <code>i</code>, o dia, for <code>0</code>? Bem, nesse caso, <code>i - 1</code> seria <code>-1</code> e nós usariamos a última cotação do mês!</p>
 <p>É claro que isso não é o que queremos, então eu substituí essa linha com o seguinte bloco:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
 </span></span><span class="line"><span class="cl">    <span class="n">dia_fallback</span> <span class="o">=</span> <span class="n">data_inicial</span>
@@ -714,7 +720,7 @@
 </span></span><span class="line"><span class="cl"><span class="k">else</span><span class="p">:</span>
 </span></span><span class="line"><span class="cl">    <span class="n">cotacoes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cotacoes</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
 </span></span></code></pre></div><p>Se <code>i</code> for maior que zero, nós prosseguimos como sempre. Se não, nós procuramos por cotações anteriores pela API até acharmos um dia válido e, então, usamos aquele valor.</p>
-<p>É claro, se quisermos fazer isso, precisaremos de uma função para consultar um dia específico. Eu a nomeei <code>consultar_dia()</code> e escrevi uma função <code>construir_query_dia()</code> para acompanhá-la.</p>
+<p>É claro, se quisermos fazer isso, precisaremos de uma função para consultar um dia específico. Eu a nomeei <code>consultar_dia()</code> e escrevi a função <code>construir_query_dia()</code> para acompanhá-la.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">construir_query_dia</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 </span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="sa">f</span><span class="s2">&#34;?%40dataCotacao=&#39;</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m</span><span class="si">%d</span><span class="s1">%Y&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39;&amp;%24format=json&#34;</span>
 </span></span><span class="line"><span class="cl">
@@ -728,12 +734,12 @@
 </span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s2">&#34;value&#34;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 </span></span><span class="line"><span class="cl">    <span class="k">except</span><span class="p">:</span>
 </span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">None</span>
-</span></span></code></pre></div><p>É importante notar que, caso o dia que consultamos não seja útil, a API não retornará a estrutura normal. Por isso, usamos um <code>try</code>/<code>except</code> para prevenir que o programa entre em combustão espontânea quando esse for o caso.</p>
-<p>OK, agora podemos finalmente construir o gráfico. Felizmente, isso é fácil com a biblioteca <code>plotly</code>.</p>
+</span></span></code></pre></div><p>É importante notar que, caso o dia que consultamos não seja útil, a API não retornará um resultado em JSON. Por isso, usamos um <code>try</code>/<code>except</code> para prevenir que o programa entre em combustão espontânea quando esse for o caso.</p>
+<p>Agora, podemos finalmente construir o gráfico. Felizmente, isso é fácil com a biblioteca <code>plotly</code>.</p>
 <p>Primeiramente, temos que processar nossas cotações, garantindo que teremos um valor para cada dia do mês.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">construir_grafico</span><span class="p">(</span><span class="n">mes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cotacoes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">data_inicial</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">data_final</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span></span><span class="line"><span class="cl">    <span class="n">valores</span> <span class="o">=</span> <span class="n">processar_cotacoes</span><span class="p">(</span><span class="n">cotacoes</span><span class="p">,</span> <span class="n">data_inicial</span><span class="p">,</span> <span class="n">data_final</span><span class="p">)</span>
-</span></span></code></pre></div><p>Então, temos que dividir as informações em um eixo <code>x</code> e um eixo <code>y</code>. Note que, como usamos índices (que começam no <code>0</code>), cada valor de <code>x</code> será <code>i + 1</code>, não apenas <code>i</code>.</p>
+</span></span></code></pre></div><p>Então, temos que dividir as informações em um eixo <code>x</code> e um eixo <code>y</code>. Note que, como usamos índices (que começam no <code>0</code>), cada valor de <code>x</code> será <code>i + 1</code>, não apenas <code>i</code>, já que não existe &ldquo;dia 0&rdquo; em um mês.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Python" data-lang="Python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">construir_grafico</span><span class="p">(</span><span class="n">mes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cotacoes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">data_inicial</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">data_final</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span></span><span class="line"><span class="cl">    <span class="n">valores</span> <span class="o">=</span> <span class="n">processar_cotacoes</span><span class="p">(</span><span class="n">cotacoes</span><span class="p">,</span> <span class="n">data_inicial</span><span class="p">,</span> <span class="n">data_final</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl">
