@@ -126,6 +126,8 @@ Executar esse código produzirá esta imagem:
 
 Como podemos ver, temos todos os nossos 700 pontos e, passando mais ou menos por meio dessa nuvem, a nossa reta.
 
+No caso, os coeficientes `a` e `b` foram, respectivamente, `373.93446839130695` e `991.6278332981966`.
+
 Aqui está o código completo, se te interessar:
 
 ```Python
